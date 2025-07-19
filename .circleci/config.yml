@@ -1,0 +1,107 @@
+version: 2.1
+
+commands:
+  setup_python:
+    description: "Set up Python environment"
+    parameters:
+      python_version:
+        type: string
+        default: "3.8"
+    steps:
+      - run:
+          name: Set up Python << parameters.python_version >>
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y python<< parameters.python_version >> python<< parameters.python_version >>-dev
+            curl -sS https://bootstrap.pypa.io/get-pip.py | python<< parameters.python_version >>
+  
+  install_dependencies:
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+  
+  build_artifacts:
+    steps:
+      - run:
+          name: Build artifacts
+          command: |
+            python setup.py sdist bdist_wheel
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:2024.01
+    steps:
+      - checkout
+      - setup_python:
+          python_version: "3.8"
+      - install_dependencies
+      - build_artifacts
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist/*
+  
+  publish:
+    docker:
+      - image: cimg/base:2024.01
+    steps:
+      - checkout
+      - setup_python:
+          python_version: "3.8"
+      - install_dependencies
+      - run:
+          name: Install publishing tools
+          command: pip install setuptools wheel twine
+      - attach_workspace:
+          at: .
+      - run:
+          name: Publish to PyPI
+          command: twine upload dist/*
+          environment:
+            TWINE_USERNAME: $TWINE_USERNAME
+            TWINE_PASSWORD: $TWINE_PASSWORD
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+            tags:
+              ignore: /.*/
+      - build:
+          type: approval
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              ignore: /.*/
+          requires: []
+          context: 
+            - build
+          matrix:
+            alias: "pr-build"
+          name: build_pull_request
+          filters:
+            branches:
+              ignore: master
+  release:
+    jobs:
+      - publish:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+    when:
+      and:
+        - equal: [ tag, << pipeline.trigger_source >> ]
+        - matches: 
+            pattern: "^v"
+            value: << pipeline.git.tag >>
