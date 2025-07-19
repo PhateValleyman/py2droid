@@ -1,0 +1,47 @@
+version: 2.1
+
+orbs:
+  github-release: circleci/github-release@1.3.0
+
+  jobs:
+    build-and-release:
+        docker:
+              - image: cimg/python:3.10
+
+                  steps:
+                        - checkout
+
+                              # Install Python dependencies from requirements.txt
+                                    - run:
+                                              name: Install dependencies
+                                                        command: |
+                                                                    python -m pip install -r scripts/requirements.txt
+
+                                                                          # Run the build script
+                                                                                - run:
+                                                                                          name: Build package
+                                                                                                    command: |
+                                                                                                                python scripts/build.py
+
+                                                                                                                      # Create GitHub release using the tag and upload artifacts
+                                                                                                                            - github-release/create:
+                                                                                                                                      # Use the Git tag that triggered the pipeline
+                                                                                                                                                tag: << pipeline.git.tag >>
+                                                                                                                                                          # Upload all files from the dist directory
+                                                                                                                                                                    files: "dist/*"
+                                                                                                                                                                              # Release notes body
+                                                                                                                                                                                        body: |
+                                                                                                                                                                                                    ## 🤖 Automated Release
+
+                                                                                                                                                                                                                This is an automated release.
+                                                                                                                                                                                                                            For a complete list of changes, see [CHANGELOG.md](module/CHANGELOG.md).
+
+                                                                                                                                                                                                                            workflows:
+                                                                                                                                                                                                                              release_workflow:
+                                                                                                                                                                                                                                  jobs:
+                                                                                                                                                                                                                                        - build-and-release:
+                                                                                                                                                                                                                                                  filters:
+                                                                                                                                                                                                                                                              tags:
+                                                                                                                                                                                                                                                                            only: /^v.*/
+                                                                                                                                                                                                                                                                                        branches:
+                                                                                                                                                                                                                                                                                                      ignore: /.*/
