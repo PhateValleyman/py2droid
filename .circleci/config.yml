@@ -76,21 +76,21 @@ workflows:
             tags:
               ignore: /.*/
       - build:
-          type: approval
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              ignore: /.*/
-          requires: []
-          context: 
+          type approval
+          filters
+            branches
+              ignore /.*/
+            tags
+              ignore /.*/
+          requires []
+          context 
             - build
-          matrix:
-            alias: "pr-build"
-          name: build_pull_request
-          filters:
-            branches:
-              ignore: master
+          matrix
+            alias "pr-build"
+          name build_pull_request
+          filters
+            branches
+              ignore master
   release:
     jobs:
       - publish:
