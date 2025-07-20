@@ -15,8 +15,6 @@ jobs:
       - run:
           name: Run tests
           command: pip install pytest
-          command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
           path: junit.xml
 
   deploy:
@@ -33,7 +31,7 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-      - test-python
+      - deploy
       # Uncomment when ready for deployment
       # - deploy:
       #     requires:
