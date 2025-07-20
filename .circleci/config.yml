@@ -32,47 +32,8 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-<<<<<<< HEAD
       - test-python
       # Uncomment when ready for deployment
       # - deploy:
       #     requires:
       #       - test-python
-=======
-      - build:
-          filters:
-            branches:
-              only: master
-            tags:
-              ignore: /.*/
-      - build:
-          type approval
-          filters
-            branches
-              ignore /.*/
-            tags
-              ignore /.*/
-          requires []
-          context 
-            - build
-          matrix
-            alias "pr-build"
-          name build_pull_request
-          filters
-            branches
-              ignore master
-  release:
-    jobs:
-      - publish:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
-    when:
-      and:
-        - equal: [ tag, << pipeline.trigger_source >> ]
-        - matches: 
-            pattern: "^v"
-            value: << pipeline.git.tag >>
->>>>>>> 474eaf8edbf4f68c289e4ff2c2b1e1d786d8d070
