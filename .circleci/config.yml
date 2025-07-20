@@ -14,6 +14,7 @@ jobs:
       - python/install-packages
       - run:
           name: Run tests
+          command: pip install pytest
           command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
       - store_test_results:
           path: junit.xml
